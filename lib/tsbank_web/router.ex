@@ -1,4 +1,5 @@
 defmodule TsbankWeb.Router do
+  alias AccountController
   use TsbankWeb, :router
   use Plug.ErrorHandler
 
@@ -26,8 +27,9 @@ defmodule TsbankWeb.Router do
   scope "/api/v1", TsbankWeb do
     pipe_through :api
 
-    post "/customers/create", UserController, :create #
-    post "/customers/sign_in", UserController, :sign_in #
+    #get "/register/new", UserController, :index
+    post "/customer/create", UserController, :create #
+    post "/customer/sign_in", UserController, :sign_in #
 
     #admins
     post "/admin/create", UserController, :createAdmin #
@@ -35,19 +37,20 @@ defmodule TsbankWeb.Router do
   end
 
   scope "/api/v1", TsbankWeb do
-    pipe_through [:api, :auth ]
+    pipe_through [:api, :auth]
 
+    #get "/accounts", AccountController, :index
     post "/accounts", AccountController, :create #
     get "/customers/:customer_id", AccountController, :customerAccounts #
     get "/accounts/:account_id", AccountController, :view_one_account #
     patch "/accounts/status_change/:account_id", AccountController, :status_update #
 
-
     #ADMINS
-
     get "/admin/accounts", AccountController, :view_all_accounts #
     get "/admin/accounts/:account_id", AccountController, :view_one_account #
     post "/admin/accounts/:customer_id", AdminController, :createCustomerAccount #
+    post "/accounts/:account_id/deposit", TransactionController, :create
+    post "/accounts/:account_id/withdraw", TransactionController, :withdraw_money
 
   end
 end

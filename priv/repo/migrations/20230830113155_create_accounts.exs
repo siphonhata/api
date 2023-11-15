@@ -8,7 +8,7 @@ defmodule Tsbank.Repo.Migrations.CreateAccounts do
       add :status, :string
       add :dateOpened, :date
       add :interestRate, :float
-      add :accountBalance, :float
+      add :balance, :float
       add :overDraftLimit, :integer
       add :branchcode, :string
       add :type, :string

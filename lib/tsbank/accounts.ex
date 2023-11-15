@@ -123,4 +123,23 @@ defmodule Tsbank.Accounts do
     |> preload([:customer])
     |> Repo.one()
   end
+##########
+  def get_account_id(id), do: Repo.get(Account, id)
+
+  def get_account_name(id) do
+    Account
+    |> where(id: ^id)
+    |> Repo.one()
+  end
+
+  def get_full_account_id(id) do
+  Account
+    |> where(customer_id: ^id)
+    |> Repo.one()
+
+  end
+
+
+  def get_account_id_use(id), do: Repo.get(Account, id)
+
 end

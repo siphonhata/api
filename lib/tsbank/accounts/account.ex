@@ -5,7 +5,7 @@ defmodule Tsbank.Accounts.Account do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "accounts" do
-    field :accountBalance, :float
+    field :balance, :float
     field :accountNumber, :string
     field :branchcode, :string
     field :dateOpened, :date
@@ -13,6 +13,7 @@ defmodule Tsbank.Accounts.Account do
     field :overDraftLimit, :integer
     field :status, :string
     field :type, :string
+    has_many :transaction, Tsbank.Transactions.Transaction
     belongs_to :customer, Tsbank.Customers.Customer
 
     timestamps()
@@ -21,8 +22,8 @@ defmodule Tsbank.Accounts.Account do
   @doc false
   def changeset(account, attrs) do
     account
-    |> cast(attrs, [:accountNumber, :status, :dateOpened, :interestRate, :accountBalance, :overDraftLimit, :branchcode, :type])
-    |> validate_required([:accountNumber, :status, :dateOpened, :interestRate, :accountBalance, :overDraftLimit, :branchcode, :type])
+    |> cast(attrs, [:accountNumber, :status, :dateOpened, :interestRate, :balance, :overDraftLimit, :branchcode, :type])
+    |> validate_required([:accountNumber, :status, :dateOpened, :interestRate, :balance, :overDraftLimit, :branchcode, :type])
     |> unique_constraint(:accountNumber)
   end
 end

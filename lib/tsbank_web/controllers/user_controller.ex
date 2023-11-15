@@ -1,16 +1,25 @@
 defmodule TsbankWeb.UserController do
   use TsbankWeb, :controller
-
+ require Logger
   alias TsbankWeb.{Auth.Guardian, Auth.ErrorResponse}
   alias Tsbank.{Users, Admins, Admins.Admin, Users.User, Customers, Customers.Customer}
+  alias CounterServer
 
   action_fallback TsbankWeb.FallbackController
 
+
+  @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()
   def index(conn, _params) do
+
+    start = System.monotonic_time() #start time
     users = Users.list_users()
+    #coun = Tsbank.CounterServer.get()
+    Tsbank.CounterServer.increment()
+    :telemetry.execute([:phoenix, :request], %{duration: System.monotonic_time() - start, log_counter: Tsbank.CounterServer.get()}, conn) # End time
     render(conn, :index, users: users)
   end
 
+  @spec create(any(), map()) :: any()
   def create(conn, %{"user" => user_params}) do
     with {:ok, %User{} = user} <- Users.create_user(user_params),
          {:ok, token, _claims} <- Guardian.encode_and_sign(user),
@@ -21,11 +30,11 @@ defmodule TsbankWeb.UserController do
     end
   end
 
+  @spec sign_in(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def sign_in(conn, %{"email" => email,  "password" => password}) do
      case Guardian.authenticate(email, password) do
        {:ok, user, token} ->
-        IO.inspect Users.update_user(%User{} = user, %{lastLoginDate: DateTime.utc_now})
-        #IO.inspect(user)
+        Users.update_user(%User{} = user, %{lastLoginDate: DateTime.utc_now})
         conn
           |> Plug.Conn.put_session(:user_id, user.id)
           |> put_status(:ok)

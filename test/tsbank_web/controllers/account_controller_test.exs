@@ -33,14 +33,14 @@ defmodule TsbankWeb.AccountControllerTest do
 
   describe "index" do
     test "lists all accounts", %{conn: conn} do
-      conn = get(conn, ~p"/api/accounts")
+      conn = get(conn, ~p"/api/v1/accounts")
       assert json_response(conn, 200)["data"] == []
     end
   end
 
   describe "create account" do
     test "renders account when data is valid", %{conn: conn} do
-      conn = post(conn, ~p"/api/accounts", account: @create_attrs)
+      conn = post(conn, ~p"/api/v1/accounts", account: @create_attrs)
       assert %{"id" => id} = json_response(conn, 201)["data"]
 
       conn = get(conn, ~p"/api/accounts/#{id}")

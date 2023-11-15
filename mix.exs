@@ -43,7 +43,10 @@ defmodule Tsbank.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:guardian, "~> 2.3"},
       {:guardian_db, "~> 2.0"},
-      {:bcrypt_elixir, "~> 3.0"}
+      {:bcrypt_elixir, "~> 3.0"},
+      {:prom_ex, "~> 1.8.0"},
+      {:telemetry, "~> 1.0"},
+      {:ex_doc, "~> 0.19"}
     ]
   end
 

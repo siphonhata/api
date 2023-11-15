@@ -7,7 +7,17 @@ defmodule Tsbank.Application do
 
   @impl true
   def start(_type, _args) do
+    :ok = :telemetry.attach(
+      # unique handler id
+      "quantum-telemetry-metrics",
+      [:phoenix, :request],
+      &TsbankWeb.Telemetry.handle_event/4,
+      nil
+    )
     children = [
+
+      {Tsbank.CounterServer, 0},
+      Tsbank.PromEx,
       # Start the Telemetry supervisor
       TsbankWeb.Telemetry,
       # Start the Ecto repository
@@ -15,9 +25,10 @@ defmodule Tsbank.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Tsbank.PubSub},
       # Start the Endpoint (http/https)
-      TsbankWeb.Endpoint
+      TsbankWeb.Endpoint,
       # Start a worker by calling: Tsbank.Worker.start_link(arg)
       # {Tsbank.Worker, arg}
+      BankSupervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

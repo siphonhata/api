@@ -2,19 +2,20 @@ defmodule BankAccount do
   require Logger
   use GenServer
   alias Transaction
+  alias Tsbank.Accounts.Account
+  import Ecto.Query
 
   # Starts the GenServer for a BankAccount
-  def start_link(account_number, initial_balance) when is_number(initial_balance) and initial_balance >= 0 do
-    BankRegistry.start_link()
-    result = GenServer.start_link(__MODULE__, initial_balance, name: {:via, Registry, {BankRegistry, account_number}})
-    Logger.info("Starting a new BankAccount GenServer with initial balance: #{initial_balance}")
-    result  # Return the result of GenServer.start_link
+  def start_link(account_number) do
+    account = Tsbank.Repo.get_by!(Account, accountNumber: account_number)
+    result = GenServer.start_link(__MODULE__, account.accountNumber, name: {:via, Registry, {BankRegistry, account.accountNumber}})
+    result
   end
 
-  # Deposit function
-  def deposit(pid, amount) do
+
+  def deposit(pid, account_number, amount) do
     try do
-      case GenServer.call(pid, {:deposit, amount}) do
+      case GenServer.call(pid, {:deposit, account_number, amount}) do
         {:ok, new_balance} ->
           Logger.debug("Deposited #{amount}. New balance: #{new_balance}")
         {:ok, new_balance}
@@ -30,9 +31,9 @@ defmodule BankAccount do
 
 
   # Withdraw function
-  def withdraw(pid, amount) do
+  def withdraw(pid, account_number, amount) do
     try do
-      case GenServer.call(pid, {:withdraw, amount}) do
+      case GenServer.call(pid, {:withdraw, account_number, amount}) do
         {:ok, new_balance} ->
           Logger.debug("Withdrew #{amount}. New balance: #{new_balance}")
           {:ok, new_balance}
@@ -75,18 +76,27 @@ end
 
   # GenServer Callbacks
 
-  def handle_call({:deposit, amount}, _from, balance) when amount > 0 do
+  def handle_call({:deposit, account_number, amount}, _from, balance) when amount > 0 do
     new_balance = balance + amount
+    Tsbank.Repo.get_by!(Tsbank.Accounts.Account, accountNumber: account_number)
+    {1, [_updated_account]} = from(a in Account, where: a.accountNumber == ^account_number, select: a)
+    |> Tsbank.Repo.update_all(set: [balance: new_balance])
+
     Logger.debug("Deposited #{amount}. New balance: #{new_balance}")
     {:reply, {:ok, new_balance}, new_balance}
   end
 
-  def handle_call({:deposit, amount}, _from, balance) when amount <= 0 do
+  def handle_call({:deposit, _account_number, _amount}, _from, balance) do
     {:reply, {:error, "Invalid amount"}, balance}
   end
 
-  def handle_call({:withdraw, amount}, _from, balance) when amount > 0 and amount <= balance do
+  def handle_call({:withdraw, account_number, amount}, _from, balance) when amount > 0 and amount <= balance do
     new_balance = balance - amount
+
+    {1, [_updated_account]} =
+      from(mm in Account, where: mm.accountNumber == ^account_number, select: mm)
+      |> Tsbank.Repo.update_all(set: [balance: new_balance])
+
     Logger.debug("Withdrew #{amount}. New balance: #{new_balance}")
     {:reply, {:ok, new_balance}, new_balance}
   end
@@ -101,11 +111,14 @@ end
     {:reply, balance, balance}
   end
 
+  def stop(pid) do
+    GenServer.stop(pid, :normal, :infinity)
+  end
+
   # Initialization callback
-  def init(initial_balance) do
-    {:ok, initial_balance}
+  def init(account_number) do
+    account = (Tsbank.Repo.get_by!(Tsbank.Accounts.Account, accountNumber: account_number))
+    {:ok, account.balance}
   end
 
 end
-
-

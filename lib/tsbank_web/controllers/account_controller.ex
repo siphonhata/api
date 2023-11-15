@@ -14,6 +14,7 @@ defmodule TsbankWeb.AccountController do
   end
 
   def create(conn, %{"account" => account_params}) do
+
     cust_id = Guardian.get_me_id(conn.assigns.user.user_id)
     custom = Users.get_customer_user(cust_id)
 

@@ -23,7 +23,7 @@ defmodule TsbankWeb.AccountJSON do
       status: account.status,
       dateOpened: account.dateOpened,
       interestRate: account.interestRate,
-      accountBalance: account.accountBalance,
+      balance: account.balance,
       overDraftLimit: account.overDraftLimit,
       branchcode: account.branchcode,
       type: account.type

@@ -1,7 +1,7 @@
 defmodule TsbankWeb.Telemetry do
   use Supervisor
   import Telemetry.Metrics
-
+ require Logger
   def start_link(arg) do
     Supervisor.start_link(__MODULE__, arg, name: __MODULE__)
   end
@@ -19,8 +19,20 @@ defmodule TsbankWeb.Telemetry do
     Supervisor.init(children, strategy: :one_for_one)
   end
 
-  def metrics do
+
+  def handle_event([:phoenix, :request], %{duration: _dur, log_counter: _coun}, _metadata, _config) do
+    # do some stuff like log a message or report metrics to a service like StatsD
+    #Logger.info("Received [:phoenix, :request] event. Request duration: #{dur}, Route: #{metadata.request_path}")
+    Logger.info("Number of request Counter: #{Tsbank.CounterServer.get()}")
+  end
+
+ def metrics do
     [
+      #counter("phoenix.request.count"),
+      # summary("phoenix.request.duration",
+      #   unit: {:native, :millisecond}
+      # ),
+      counter("telemetry_demo.transform_data.count"),
       # Phoenix Metrics
       summary("phoenix.endpoint.start.system_time",
         unit: {:native, :millisecond}
@@ -72,6 +84,14 @@ defmodule TsbankWeb.Telemetry do
         unit: {:native, :millisecond},
         description:
           "The time the connection spent waiting before being checked out for the query"
+      ),
+
+      # Me metrics
+
+
+      summary("quantum-telemetry-metrics",
+        unit: {:native, :millisecond},
+        description: "The sum of the other measurements"
       ),
 
       # VM Metrics
